@@ -23,8 +23,7 @@ int main()
     inputInfo();
 
     vector<double> x, y;
-    x.push_back(2);
-    y.push_back(3);
+    findTurn(x, y);
 
     cout << routeRisk(x, y) << endl << routeDist(x, y);
 
@@ -170,4 +169,155 @@ double routeDist(vector<double> x, vector<double> y)
 
     return distance;
 }
+void findTurn(vector<int> x, vector<int> y)  // 找兩個離目前位置最近的點，在這個矩形區找風險最小的轉折點，如果總風險沒有降低就不要轉
+{
+	bool* checkPoint = new bool[riskCnt];
+	for (int i = 0; i < riskCnt; i++)
+		checkPoint[i] = 0;
+	int nowX = source[0];  // 現在位置
+	int nowY = source[1];
+	while (nowX != dest[0] && nowY != dest[1])
+	{
+		double distToNow, minDist1 = 2147483647, minDist2 = 2147483647;
+		int min1 = -1, min2 = -1;
+		for (int i = 0; i < riskCnt; i++)  // 先找出兩個距離最近的點
+		{
+			if ((nowX <= riskPoint_X[i] && riskPoint_X[i] <= dest[0]) || (nowX >= riskPoint_X[i] && riskPoint_X[i] >= dest[0]))
+				if ((nowY <= riskPoint_Y[i] && riskPoint_Y[i] <= dest[1]) || (nowY >= riskPoint_Y[i] && riskPoint_Y[i] >= dest[1]))
+				{
+					distToNow = sqrt(pow(nowX - riskPoint_X[i], 2) + pow(nowY - riskPoint_Y[i], 2));
+					if (distToNow < minDist1)
+					{
+						min1 = i;
+						minDist1 = distToNow;
+					}
+					else if (distToNow < minDist2 && checkPoint[i] == 0)
+					{
+						min2 = i;
+						minDist2 = distToNow;
+					}
+				}
+		}
+		// 找出這兩個最小距離點框出來的矩形區
+		int minX, maxX, minY, maxY;
+		if (min1 != -1 && min2 != -1)
+		{
+			checkPoint[min1] = 1;
+			checkPoint[min2] = 1;
+			minX = riskPoint_X[min1], maxX = riskPoint_X[min2];
+			if (riskPoint_X[min1] > riskPoint_X[min2])
+			{
+				minX = riskPoint_X[min2];
+				maxX = riskPoint_X[min1];
+			}
+			minY = riskPoint_Y[min1], maxY = riskPoint_Y[min2];
+			if (riskPoint_Y[min1] > riskPoint_Y[min2])
+			{
+				minY = riskPoint_Y[min2];
+				maxY = riskPoint_Y[min1];
+			}
+		}
+		else
+		{
+			if (min1 != -1)
+			{
+				checkPoint[min1] = 1;
+				minX = riskPoint_X[min1], maxX = nowX;
+				if (riskPoint_X[min1] > nowX)
+				{
+					minX = nowX;
+					maxX = riskPoint_X[min1];
+				}
+				minY = riskPoint_Y[min1], maxY = nowY;
+				if (riskPoint_Y[min1] > nowY)
+				{
+					minY = nowY;
+					maxY = riskPoint_Y[min1];
+				}
+			}
+			else if (min2 != -1)
+			{
+				checkPoint[min2] = 1;
+				minX = riskPoint_X[min2], maxX = nowX;
+				if (riskPoint_X[min2] > nowX)
+				{
+					minX = nowX;
+					maxX = riskPoint_X[min2];
+				}
+				minY = riskPoint_Y[min2], maxY = nowY;
+				if (riskPoint_Y[min2] > nowY)
+				{
+					minY = nowY;
+					maxY = riskPoint_Y[min2];
+				}
+			}
+			else
+			{
+				minX = nowX, maxX = dest[0];
+				if (nowX > dest[0])
+				{
+					minX = dest[0];
+					maxX = nowX;
+				}
+				minY = nowY, maxY = dest[1];
+				if (nowY > dest[1])
+				{
+					minY = dest[1];
+					maxY = nowY;
+				}
+			}
+			if (minX == maxX && minY != maxY)
+			{
+				minY = maxY;
+				minX = 0;
+				maxX = NodeCnt;
+			}
+			if (minX != maxX && minY == maxY)
+			{
+				minX = maxX;
+				minY = 0;
+				maxY = NodeCnt;
+			}
+		}
 
+		double dist, riskTotal, minRisk = 2147483647, minDistToDest = 2147483647, distToDest;
+		int bestX, bestY;
+		for (int i = minX; i <= maxX; i++)  // 找出矩形區內風險最小點
+			for (int j = minY; j <= maxY; j++)
+			{
+				riskTotal = 0;
+				for (int k = 0; k < riskCnt; k++)
+				{
+					dist = sqrt(pow(i - riskPoint_X[k], 2) + pow(j - riskPoint_Y[k], 2));
+					if (dist < riskPoint_R[k])
+						riskTotal += riskPoint_P[k] * (riskPoint_R[i] - dist) / riskPoint_R[i];
+				}
+				distToDest = sqrt(pow(i - dest[0], 2) + pow(j - dest[1], 2));
+				if (riskTotal < minRisk || (abs(riskTotal - minRisk) < 0.00001  && distToDest < minDistToDest))
+				{
+					minDistToDest = distToDest;
+					minRisk = riskTotal;
+					bestX = i;
+					bestY = j;
+				}
+			}
+		// 試著在矩形區最小風險點轉折，但如果加入後的結果沒有比較好，就不要轉，直接到矩形區的頂點再下一步
+		
+		double nowTotalRisk = routeRisk(x, y), nowTotalDist = routeDist(x, y);
+		x.push_back(bestX);
+		y.push_back(bestY);
+		if (nowTotalRisk >= routeRisk(x, y) && routeDist(x, y) <= maxDist)
+		{
+			nowX = bestX;
+			nowY = bestY;
+		}
+		else
+		{
+			vecX.pop_back();
+			vecY.pop_back();
+		}
+		
+		if (min1 + min2 != 2)
+			break;
+	}
+}
