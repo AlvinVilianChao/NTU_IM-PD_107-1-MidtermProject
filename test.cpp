@@ -1,9 +1,9 @@
 #include <iostream>
 #include <vector>
 #include <math.h>
-
 using namespace std;
-// string?????
+
+
 int NodeCnt, riskCnt, turnCost, maxDist; //n, m, w, d
 int* riskPoint_X;
 int* riskPoint_Y;
@@ -24,10 +24,9 @@ int main()
 
     vector<double> x, y;
     x.push_back(2);
-
     y.push_back(3);
 
-    cout << routeRisk(x, y);
+    cout << routeRisk(x, y) << endl << routeDist(x, y);
 
     return 0;
 }
@@ -124,7 +123,7 @@ double routeRisk(vector<double> x, vector<double> y)
                 if(i == 0 || (j != 1 && i !=0))
                     xStarter += xPerUnit, yStarter += yPerUnit;
 
-                cout << xStarter << " "<< " " << yStarter << " " <<endl;
+                // cout << xStarter << " "<< " " << yStarter << " " <<endl;
 
                 for (int l = 0; l <= riskCnt; l++)
                 {
