@@ -3,8 +3,7 @@
 #include <math.h>
 
 using namespace std;
-// string
-
+// string?????
 int NodeCnt, riskCnt, turnCost, maxDist; //n, m, w, d
 int* riskPoint_X;
 int* riskPoint_Y;
