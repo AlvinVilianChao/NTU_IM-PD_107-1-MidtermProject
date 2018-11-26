@@ -1,8 +1,9 @@
 #include <iostream>
 #include <vector>
 #include <math.h>
-using namespace std;
 
+using namespace std;
+// string
 
 int NodeCnt, riskCnt, turnCost, maxDist; //n, m, w, d
 int* riskPoint_X;
