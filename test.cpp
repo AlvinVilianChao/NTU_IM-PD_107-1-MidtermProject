@@ -15,7 +15,7 @@ int dest[2] = {0};
 void inputInfo();
 double routeRisk(vector<double> x, vector<double> y);
 double routeDist(vector<double> x, vector<double> y);
-
+void findTurn(vector<double> x, vector<double> y);
 
 
 int main()
@@ -25,8 +25,18 @@ int main()
     vector<double> x, y;
     findTurn(x, y);
 
-    cout << routeRisk(x, y) << endl << routeDist(x, y);
+    //cout << routeRisk(x, y) << endl << routeDist(x, y);
 
+    if (x.size() == 0)
+        cout << 0;
+    else
+    {
+        cout << x.size() << " ";
+
+        for(int i = 0; i < x.size(); i++)
+            cout << x[i] << " " << y[i] << " ";
+    }
+    
     return 0;
 }
 
@@ -155,21 +165,28 @@ double routeDist(vector<double> x, vector<double> y)
 {
     double distance = 0;
 
-    for (int i = 0; i <= x.size(); i++)
+    if (x.size() == 0)
     {
-        // 算起點到第1個間的距離
-        if (i == 0)
-            distance += sqrt(pow((x[i] - source[0]), 2) + pow((y[i] - source[0]), 2));
-        // 算最後一個轉折點到終點的距離    
-        else if (i == x.size())
-            distance += sqrt(pow((dest[0] - x[i - 1]), 2) + pow((dest[1] - y[i - 1]), 2));
-        else
-            distance += sqrt(pow((x[i] - x[i - 1]), 2) + pow((y[i] - y[i - 1]), 2));
+        distance += sqrt(pow((dest[0] - source[0]), 2) + pow((dest[1] - source[1]), 2));
     }
-
+    else
+    {
+        for (int i = 0; i <= x.size(); i++)
+        {
+            // 算起點到第1個間的距離
+            if (i == 0)
+                distance += sqrt(pow((x[i] - source[0]), 2) + pow((y[i] - source[1]), 2));
+            // 算最後一個轉折點到終點的距離    
+            else if (i == x.size())
+                distance += sqrt(pow((dest[0] - x[i - 1]), 2) + pow((dest[1] - y[i - 1]), 2));
+            else
+                distance += sqrt(pow((x[i] - x[i - 1]), 2) + pow((y[i] - y[i - 1]), 2));
+        }
+    }
     return distance;
 }
-void findTurn(vector<int> x, vector<int> y)  // 找兩個離目前位置最近的點，在這個矩形區找風險最小的轉折點，如果總風險沒有降低就不要轉
+
+void findTurn(vector<double> x, vector<double> y)  // 找兩個離目前位置最近的點，在這個矩形區找風險最小的轉折點，如果總風險沒有降低就不要轉
 {
 	bool* checkPoint = new bool[riskCnt];
 	for (int i = 0; i < riskCnt; i++)
@@ -313,8 +330,8 @@ void findTurn(vector<int> x, vector<int> y)  // 找兩個離目前位置最近�
 		}
 		else
 		{
-			vecX.pop_back();
-			vecY.pop_back();
+			x.pop_back();
+			y.pop_back();
 		}
 		
 		if (min1 + min2 != 2)
